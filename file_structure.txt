@@ -1,0 +1,24 @@
+weather_backend/
+├── accuweather/
+│   ├── accuweather_client.py
+│   ├── accuweather_scraper.py
+├── national_weather_service/
+│   ├── nws_config.py
+│   ├── nws_scraper.py
+├── open_meteo/
+│   ├── open_meteo_config.py
+│   ├── open_meteo_scraper.py
+├── open_weather/
+│   ├── open_weather_scraper.py
+│   ├── open_weather_utils.py
+├── weather_api/
+│   ├── weather_api_scraper.py
+│   ├── weather_api_utils.py
+├── weatherbit/
+│   ├── weatherbit_scraper.py
+│   ├── weatherbit_utils.py
+├── .env
+├── README.md
+├── cli.py    
+├── lambda_handler.py          
+├── weather_scraper.py       # core          

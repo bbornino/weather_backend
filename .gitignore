@@ -11,7 +11,6 @@ __pycache__/
 # These are files created during development or for testing
 # that should not be committed to the repository.
 # -----------------------------
-*.txt
 *.json
 
 # Distribution / packaging
