@@ -21,6 +21,8 @@ import json
 import os
 import sys
 from copy import deepcopy
+from weather_scraper import get_weather
+
 
 DEFAULT_SETTINGS_FILE = "weather_settings.json"
 DEFAULTS = {
@@ -148,13 +150,19 @@ def manage_locations(state):
     """Interactively set the locations in the state."""
     locations = state.get("locations", {})
     default_loc = state.get("default_location")
+    active_loc = state.get("active_location", default_loc)
 
     while True:
         print("\nLocations:")
         if locations:
             for alias, loc in locations.items():
-                default_mark = " (default)" if alias == default_loc else ""
-                print(f" - {alias}: {loc}{default_mark}")
+                marks = []
+                if alias == default_loc:
+                    marks.append("default")
+                if alias == active_loc:
+                    marks.append("active")
+                mark_str = f" ({', '.join(marks)})" if marks else ""
+                print(f" - {alias}: {loc}{mark_str}")
         else:
             print(" No locations defined.")
 
@@ -162,6 +170,7 @@ def manage_locations(state):
         print("a) Add location")
         print("r) Remove location")
         print("s) Set default location")
+        print("c) Set active location for this session")
         print("d) Done")
 
         choice = input("Choose an option: ").strip().lower()
@@ -187,6 +196,14 @@ def manage_locations(state):
             if alias in locations:
                 state["default_location"] = alias
                 print(f"Default location set to '{alias}'")
+            else:
+                print("Alias not found.")
+        elif choice == "c":
+            alias = input("Enter alias to set as active: ").strip()
+            if alias in locations:
+                state["active_location"] = alias
+                active_loc = alias
+                print(f"Active location set to '{alias}'")
             else:
                 print("Alias not found.")
         elif choice == "d":
@@ -342,10 +359,17 @@ def interactive_menu(state, config_path):
     while True:
         print("\nWeather CLI - Interactive Mode\n")
         print(f"Settings file - {config_path}")
-        location_alias = state.get("default_location")
-        selected_location = state.get("locations", {}).get(location_alias, "None")
-        print(f"Selected location - {selected_location}")
-        print(f"Default location - {state.get('default_location', 'None')}")
+
+        default_alias = state.get("default_location")
+        active_alias = state.get("active_location", default_alias)
+        locations = state.get("locations", {})
+
+        default_loc = locations.get(default_alias, "None")
+        active_loc = locations.get(active_alias, "None")
+
+        print(f"Selected location - {active_alias}: {active_loc}")
+        print(f"Default location - {default_alias}: {default_loc}")
+
         current_units = state.get("units", "imperial")
         print(f"Units - {UNIT_DESCRIPTIONS.get(current_units, current_units)}")
         print(f"Fields to show - {', '.join(state.get('show', []))}")
@@ -378,6 +402,9 @@ def interactive_menu(state, config_path):
             set_forecast(state)
         elif choice == "r":
             print("actual run not implemented... yet")
+            weather_results = get_weather(state)
+            print("\n\nReceived this weather:")
+            print(weather_results)
             break
         elif choice == "x":
             break
