@@ -43,26 +43,32 @@ AVAILABLE_APIS = {
     "a": {
         "name": "accuweather",
         "description": "Detailed forecasts with alerts; strong US coverage; popular for hyper-local predictions",
+        "status": "API KEY ISSUE",
     },
     "n": {
         "name": "national_weather_service",
         "description": "Official US government forecasts and warnings; US-only; reliable for alerts",
+        "status": "TBD",
     },
     "o": {
         "name": "open_meteo",
         "description": "Free, no-auth global API; simple forecasts and historical data; lightweight",
+        "status": "TBD",
     },
     "w": {
         "name": "open_weather",
         "description": "Global coverage, current weather and forecasts; widely supported; needs API key",
+        "status": "OK",
     },
     "p": {
         "name": "weatherapi",
         "description": "Global forecasts including historical data; supports alerts and astronomy info",
+        "status": "OK",
     },
     "b": {
         "name": "weatherbit",
         "description": "Global hourly/daily forecasts; good for developers needing JSON output",
+        "status": "API KEY ISSUE",
     },
 }
 
@@ -225,7 +231,8 @@ def manage_apis(state):
                 name = info["name"]
                 enabled = apis.get(name, {}).get("enabled", False)
                 status = "ON" if enabled else "OFF"
-                print(f"[{key}] {name:<28} [{status}]")
+                api_status = info["status"]
+                print(f"[{key}] {name:<28} [{status}] ({api_status})")
             print("\n[?] View API descriptions")
             print("\n[d] Done")
         else:
