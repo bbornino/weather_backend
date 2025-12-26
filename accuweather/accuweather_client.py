@@ -58,15 +58,7 @@ class AccuWeatherClient:
             # Geoposition search
             url = "https://dataservice.accuweather.com/locations/v1/cities/geoposition/search"
             params = {"apikey": self.API_KEY, "q": f"{lat},{lon}"}
-            try:
-                resp = requests.get(url, params=params, timeout=self.timeout)
-                resp.raise_for_status()
-                data = resp.json()
-            except requests.RequestException as e:
-                raise RuntimeError(
-                    f"Failed to fetch location key from AccuWeather: {e}"
-                )
-
+            data = self._get_json_or_raise(url, params)
             location_key = data["Key"]
             # Store the lat/lon from response (use the returned coordinates, more accurate)
             lat_resp = data["GeoPosition"]["Latitude"]
@@ -76,19 +68,10 @@ class AccuWeatherClient:
             # City name search
             url = "https://dataservice.accuweather.com/locations/v1/cities/search"
             params = {"apikey": self.API_KEY, "q": friendly_name}
-            try:
-                resp = requests.get(url, params=params, timeout=self.timeout)
-                resp.raise_for_status()
-                data_list = resp.json()
-                if not data_list:
-                    raise RuntimeError(
-                        f"No results returned for city '{friendly_name}'"
-                    )
-                data = data_list[0]  # pick first by default
-            except requests.RequestException as e:
-                raise RuntimeError(
-                    f"Failed to fetch location key from AccuWeather: {e}"
-                )
+            data_list = self._get_json_or_raise(url, params)
+            if not data_list:
+                raise RuntimeError(f"No results returned for city '{friendly_name}'")
+            data = data_list[0]
 
             location_key = data["Key"]
             lat_resp = data["GeoPosition"]["Latitude"]
@@ -109,6 +92,31 @@ class AccuWeatherClient:
         self._save_cache()
 
         return location_key
+
+    def _get_json_or_raise(self, url, params):
+        """
+        Wrapper for requests.get that raises RuntimeError with API message
+        if the key is expired or any other error occurs.
+        """
+        try:
+            resp = requests.get(url, params=params, timeout=self.timeout)
+            # First, try to parse JSON regardless of status code
+            try:
+                data = resp.json()
+            except Exception:
+                data = {}
+
+            # Handle API-specific 403 with expired key
+            if resp.status_code == 403:
+                detail = data.get("detail") or data.get("title") or "Forbidden"
+                raise RuntimeError(f"AccuWeather API Key problem: {detail}")
+
+            # Raise for any other HTTP errors
+            resp.raise_for_status()
+            return data
+
+        except requests.RequestException as e:
+            raise RuntimeError(f"Request failed: {e}")
 
     def find_cached_key(self, friendly_name=None, lat=None, lon=None):
         """
