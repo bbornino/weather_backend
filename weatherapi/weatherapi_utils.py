@@ -16,17 +16,15 @@ modules that need WeatherAPI data.
 import os
 from dotenv import load_dotenv
 
-import sys
-import io
+# import sys
+# import io
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+from weather_shared import WeatherData
+
+# sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 load_dotenv()
 os.environ["PYTHONUTF8"] = "1"
-HOME_CITY = os.getenv("HOME_CITY")
-HOME_LAT = os.getenv("HOME_LATITUDE")
-HOME_LON = os.getenv("HOME_LONGITUDE")
 WEATHERAPI_KEY = os.getenv("WEATHERAPI_API_KEY")
 URL_BASE = "https://api.weatherapi.com/v1/"
 
@@ -87,6 +85,55 @@ WEATHERAPI_CONDITIONS_MAP = {
     "dni": "Direct Normal Irradiance",
     "gti": "Global Tilted Irradiance",
 }
+
+
+def parse_weatherapi_data(data, units) -> WeatherData:
+    weather = WeatherData()
+    if units == "imperial":
+        weather.temperature = data["temp_f"]
+        weather.feels_like = data["feelslike_f"]
+        weather.wind_chill = data["windchill_f"]
+        weather.heat_index = data["heatindex_f"]
+        weather.dew_point = data["dewpoint_f"]
+
+        weather.wind_speed = data["wind_mph"]
+        weather.wind_degree = data["wind_degree"]
+        weather.wind_direction = data["wind_dir"]
+        weather.wind_gust = data["gust_mph"]
+
+        weather.humidity = data["humidity"]
+        weather.pressure = data["pressure_in"]
+        weather.precipitation = data["precip_in"]
+        weather.visibility = data["vis_miles"]
+        weather.cloud_cover = data["cloud"]
+        weather.uv = data["uv"]
+
+        weather.timestamp = data["last_updated"]
+        weather.condition = data["condition"]
+
+    else:
+        weather.temperature = data["temp_c"]
+        weather.feels_like = data["feelslike_c"]
+        weather.wind_chill = data["windchill_c"]
+        weather.heat_index = data["heatindex_c"]
+        weather.dew_point = data["dewpoint_c"]
+
+        weather.wind_speed = data["wind_kph"]
+        weather.wind_degree = data["wind_degree"]
+        weather.wind_direction = data["wind_dir"]
+        weather.wind_gust = data["gust_kph"]
+
+        weather.humidity = data["humidity"]
+        weather.pressure = data["pressure_mb"]
+        weather.precipitation = data["precip_in"]
+        weather.visibility = data["vis_km"]
+        weather.cloud_cover = data["cloud"]
+        weather.uv = data["uv"]
+
+        weather.timestamp = data["last_updated"]
+        weather.condition = data["condition"]
+
+    return weather
 
 
 def print_weather_data(data, mapping=None):
