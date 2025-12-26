@@ -11,6 +11,10 @@ import urllib.request
 import json
 from weather_code_map import WEATHER_CODE_MAP
 
+from weatherapi.weatherapi_scraper import get_weatherapi_data
+from weatherbit.weatherbit_scraper import get_weatherbit_data
+from open_weather.open_weather_map_scraper import get_open_weather_data
+
 
 def get_weather(config):
     """
@@ -27,7 +31,7 @@ def get_weather(config):
     """
     # placeholder for now
     print("weather_scraper->get_weather()")
-    print(config)
+    # print(config)
 
     # Determine which location to use
     location = config.get("location")
@@ -61,14 +65,26 @@ def get_weather(config):
     results = []
 
     # Each API call would go here later
-    for api_name in enabled_apis:
-        # For now, return dummy data
-        dummy_data = {}
-        if "temp" in show_fields:
-            dummy_data["temperature"] = 72
-        if "humidity" in show_fields:
-            dummy_data["humidity"] = 50
+    if "accuweather" in enabled_apis:
+        print("accuweather is NOT enabled yet")
 
-        results.append({"api_name": api_name, "success": True, "data": dummy_data})
+    if "national_weather_service" in enabled_apis:
+        print("national_weather_service is NOT enabled yet")
+
+    if "open_meteo" in enabled_apis:
+        print("open_meteo is NOT enabled yet")
+
+    if "open_weather" in enabled_apis:
+        print("calling open_weather library...")
+        owm_results = get_open_weather_data(location, units)
+
+    if "weatherapi" in enabled_apis:
+        print("calling weatherapi library...")
+        wa_results = get_weatherapi_data(location, units)
+
+    if "weatherbit" in enabled_apis:
+        print("calling weatherbit library... API key issue!")
+        wb_results = get_weatherbit_data(location, units)
+        # print(wb_results)
 
     return {"location": location, "units": units, "results": results}
