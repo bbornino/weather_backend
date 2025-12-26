@@ -218,18 +218,17 @@ def manage_apis(state):
     apis = state.get("apis", {})
 
     while True:
-        print("\nAPIs:")
+        print("\nAPIs (toggle by letter):\n")
         if apis:
-            for name, info in apis.items():
-                status = "enabled" if info.get("enabled") else "disabled"
-                print(f" - {name}: {status}")
+            for key, info in AVAILABLE_APIS.items():
+                name = info["name"]
+                enabled = apis.get(name, {}).get("enabled", False)
+                status = "ON" if enabled else "OFF"
+                print(f"[{key}] {name:<28} [{status}]")
+            print("\n[?]) View API descriptions")
+            print("\n[d]) Done")
         else:
             print(" No APIs defined.")
-
-        print("\nOptions:")
-        for key, info in AVAILABLE_APIS.items():
-            print(f"{key}) {info['name']} - {info['description']}")
-        print("d) Done")
 
         choice = input("Choose an API to toggle or 'd' when done: ").strip().lower()
 
@@ -242,6 +241,12 @@ def manage_apis(state):
                 apis[api_name]["enabled"] = not apis[api_name].get("enabled", False)
                 status = "enabled" if apis[api_name]["enabled"] else "disabled"
                 print(f"API '{api_name}' is now {status}")
+        elif choice == "?":
+            print("\nAPI Details:\n")
+            for info in AVAILABLE_APIS.values():
+                print(f"{info['name']}")
+                print(f"  {info['description']}\n")
+            input("Press Enter to return to the API list...")
         elif choice == "d":
             state["apis"] = apis
             return
