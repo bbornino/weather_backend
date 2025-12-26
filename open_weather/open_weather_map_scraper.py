@@ -97,3 +97,40 @@ def get_open_weather_data(location, units):
     # print(json.dumps(data, indent=2))
 
     return current_weather
+
+
+def reverse_geocode(lat, lon):
+    """
+    Reverse-geocode latitude/longitude to city and state using OpenWeatherMap.
+
+    Returns:
+        dict with keys: city, state, country
+        or None if lookup fails
+    """
+    url = URL_BASE.replace("/data/2.5/", "/geo/1.0/reverse")
+
+    params = {
+        "lat": lat,
+        "lon": lon,
+        "limit": 1,
+        "appid": OPEN_WEATHER_MAP_API_KEY,
+    }
+
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.RequestException as e:
+        print(f"OpenWeather reverse geocode failed: {e}")
+        return None
+
+    if not data:
+        return None
+
+    entry = data[0]
+
+    return {
+        "city": entry.get("name"),
+        "state": entry.get("state"),
+        "country": entry.get("country"),
+    }
