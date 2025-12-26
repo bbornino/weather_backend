@@ -7,23 +7,24 @@
 
 from accuweather_client import AccuWeatherClient
 
-client = AccuWeatherClient()
-location_key = client.get_location_key("Home")
 
-current_conditions_data = client.get_current_conditions(location_key)
-# hourly_forecast_data = client.get_hourly_forecast(location_key)
-# daily_forecast_data = client.get_daily_forecast(location_key)
+def get_accuweather_data(location, units):
+    client = AccuWeatherClient()
+    location_key = client.get_location_key("Home")
 
-print(current_conditions_data)
-# print(hourly_forecast_data)
-# print(daily_forecast_data)
+    current_conditions_data = client.get_current_conditions(location_key)
+    # hourly_forecast_data = client.get_hourly_forecast(location_key)
+    # daily_forecast_data = client.get_daily_forecast(location_key)
 
+    print(current_conditions_data)
+    # print(hourly_forecast_data)
+    # print(daily_forecast_data)
 
-# with open("accuweather_current_conditions_data.json", "w", encoding="utf-8") as f:
-#     json.dump(current_conditions_data, f, indent=4)
+    # with open("accuweather_current_conditions_data.json", "w", encoding="utf-8") as f:
+    #     json.dump(current_conditions_data, f, indent=4)
 
-# with open("accuweather_hourly_forecast_data.json", "w", encoding="utf-8") as f:
-#     json.dump(hourly_forecast_data, f, indent=4)
+    # with open("accuweather_hourly_forecast_data.json", "w", encoding="utf-8") as f:
+    #     json.dump(hourly_forecast_data, f, indent=4)
 
-# with open("accuweather_daily_forecast_data.json", "w", encoding="utf-8") as f:
-#     json.dump(current_conditions_data, f, indent=4)
+    # with open("accuweather_daily_forecast_data.json", "w", encoding="utf-8") as f:
+    #     json.dump(current_conditions_data, f, indent=4)
