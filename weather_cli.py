@@ -203,7 +203,8 @@ def manage_locations(state):
             if alias in locations:
                 state["active_location"] = alias
                 active_loc = alias
-                print(f"Active location set to '{alias}'")
+                state["location"] = locations[alias]
+                print(f"Active location set to '{alias}': '{state["location"]}'")
             else:
                 print("Alias not found.")
         elif choice == "d":
@@ -225,8 +226,8 @@ def manage_apis(state):
                 enabled = apis.get(name, {}).get("enabled", False)
                 status = "ON" if enabled else "OFF"
                 print(f"[{key}] {name:<28} [{status}]")
-            print("\n[?]) View API descriptions")
-            print("\n[d]) Done")
+            print("\n[?] View API descriptions")
+            print("\n[d] Done")
         else:
             print(" No APIs defined.")
 
