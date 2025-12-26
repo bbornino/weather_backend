@@ -13,14 +13,18 @@ This file is imported by open_weather_map_scraper.py and any other
 modules that need OpenWeatherMap data.
 """
 
+from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-import sys
-import io
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+# import sys
+# import io
+
+# sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+# sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
+from weather_shared import WeatherData, degrees_to_direction
 
 load_dotenv()
 os.environ["PYTHONUTF8"] = "1"
@@ -70,6 +74,54 @@ def build_conditions_map(units="imperial"):
         "name": "City Name",
         "timezone": "Timezone Offset (s)",
     }
+
+
+def parse_open_weather_map_data(data, units) -> WeatherData:
+    weather = WeatherData()
+    if units == "imperial":
+        weather.temperature = data["main"]["temp"]
+        weather.feels_like = data["main"]["feels_like"]
+
+        weather.wind_speed = data["wind"]["speed"]
+        weather.wind_degree = data["wind"]["deg"]
+        weather.wind_direction = degrees_to_direction(data["wind"]["deg"])
+        weather.wind_gust = data["wind"]["gust"]
+
+        weather.humidity = data["main"]["humidity"]
+        weather.pressure = data["main"]["pressure"]
+        weather.precipitation = None  # not included in current endpoint; could use rain/snow keys if present
+        weather.visibility = data["visibility"]
+        weather.cloud_cover = data["clouds"]["all"]
+        weather.uv = None  # OpenWeatherMap current API doesn't include UV
+
+        weather.timestamp = (
+            datetime.fromtimestamp(data.get("dt")) if data.get("dt") else None
+        )
+        weather.condition = data["weather"]
+
+    else:
+        weather.temperature = data["temp_c"]
+        # weather.feels_like = data["feelslike_c"]
+        # weather.wind_chill = data["windchill_c"]
+        # weather.heat_index = data["heatindex_c"]
+        # weather.dew_point = data["dewpoint_c"]
+
+        # weather.wind_speed = data["wind_kph"]
+        # weather.wind_degree = data["wind_degree"]
+        # weather.wind_direction = data["wind_dir"]
+        # weather.wind_gust = data["gust_kph"]
+
+        # weather.humidity = data["humidity"]
+        # weather.pressure = data["pressure_mb"]
+        # weather.precipitation = data["precip_in"]
+        # weather.visibility = data["vis_km"]
+        # weather.cloud_cover = data["cloud"]
+        # weather.uv = data["uv"]
+
+        # weather.timestamp = data["last_updated"]
+        # weather.condition = data["condition"]
+
+    return weather
 
 
 def print_weather_data(data, units="imperial", mapping=None):

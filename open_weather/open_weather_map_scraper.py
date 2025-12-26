@@ -23,69 +23,77 @@ Notes:
 
 import json
 import requests
-from open_weather_map_utils import (
+from open_weather.open_weather_map_utils import (
     OPEN_WEATHER_MAP_API_KEY,
     URL_BASE,
-    HOME_CITY,
-    HOME_LAT,
-    HOME_LON,
-    print_weather_data,
+    # print_weather_data,
+    parse_open_weather_map_data,
 )
-
-UNITS = "imperial"
-# UNITS = "metric"
-LOCATION = f"lat={HOME_LAT}&lon={HOME_LON}"
-# LOCATION = f"q={HOME_CITY}"
-
-OWM_BASE_QUERY = {
-    "appid": OPEN_WEATHER_MAP_API_KEY,
-    "units": UNITS,
-    # "q":        HOME_CITY,
-    "lat": HOME_LAT,
-    "lon": HOME_LON,
-}
+from weather_shared import parse_location
 
 
-# #################  'exclude' parameter
-#
-# One Call API 'exclude' parameter:
-# - Optional; allows skipping sections of the response to reduce payload size.
-# - Possible values: 'current', 'minutely', 'hourly', 'daily', 'alerts'.
-# - Example: exclude='minutely,hourly' would return only current, daily, and alerts.
-# - By default, if you omit 'exclude', the API returns all available data.
-# - Including everything increases JSON size, especially with hourly and daily forecasts.
-# - Useful for personal projects: you can usually take all data without issues.
-# - Consider using 'exclude' only if you need to reduce API usage or response size.
-#
-# Sample usages of One Call API 'exclude' parameter:
+def get_open_weather_data(location, units):
+    loc = parse_location(location)
 
-# 1) Exclude a single section: skip minutely forecast
-# EXCLUDE = "minutely"  #  → returns current, hourly, daily, alerts
+    # UNITS = "imperial"
+    # UNITS = "metric"
+    # LOCATION = f"lat={HOME_LAT}&lon={HOME_LON}"
+    # LOCATION = f"q={HOME_CITY}"
 
-# 2) Exclude multiple sections: skip minutely and hourly forecasts
-# EXCLUDE = "minutely,hourly"  # → returns current, daily, alerts
+    owm_query = {
+        "appid": OPEN_WEATHER_MAP_API_KEY,
+        "units": units,
+    }
 
-# 3) Exclude three sections: skip minutely, hourly, and alerts
-# EXCLUDE = "minutely,hourly,alerts"  # → returns only current and daily
+    # Append location info dynamically
+    if loc["lat"] is not None and loc["lon"] is not None:
+        owm_query.update({"lat": loc["lat"], "lon": loc["lon"]})
+    else:
+        owm_query.update({"q": f"{loc['city']},{loc['state']}"})
 
-# URL_SUFFIX += f"&exclude={EXCLUDE}"
+    # #################  'exclude' parameter
+    #
+    # One Call API 'exclude' parameter:
+    # - Optional; allows skipping sections of the response to reduce payload size.
+    # - Possible values: 'current', 'minutely', 'hourly', 'daily', 'alerts'.
+    # - Example: exclude='minutely,hourly' would return only current, daily, and alerts.
+    # - By default, if you omit 'exclude', the API returns all available data.
+    # - Including everything increases JSON size, especially with hourly and daily forecasts.
+    # - Useful for personal projects: you can usually take all data without issues.
+    # - Consider using 'exclude' only if you need to reduce API usage or response size.
+    #
+    # Sample usages of One Call API 'exclude' parameter:
 
+    # 1) Exclude a single section: skip minutely forecast
+    # EXCLUDE = "minutely"  #  → returns current, hourly, daily, alerts
 
-#  Current Weather Conditions
-CURRENT_CONDITIONS_URL = URL_BASE + "weather"
-print(CURRENT_CONDITIONS_URL)
-current_conditions_response = requests.get(
-    CURRENT_CONDITIONS_URL, params=OWM_BASE_QUERY, timeout=10
-)
-current_conditions_data = current_conditions_response.json()
-# print(data)
-# print(json.dumps(current_conditions_data, indent=2))
-print_weather_data(current_conditions_data)
+    # 2) Exclude multiple sections: skip minutely and hourly forecasts
+    # EXCLUDE = "minutely,hourly"  # → returns current, daily, alerts
 
-#  Current Forecast
-CURRENT_CONDITIONS_URL = URL_BASE + "forecast"
-print(CURRENT_CONDITIONS_URL)
-response = requests.get(CURRENT_CONDITIONS_URL, params=OWM_BASE_QUERY, timeout=10)
-data = response.json()
-# print(data)
-# print(json.dumps(data, indent=2))
+    # 3) Exclude three sections: skip minutely, hourly, and alerts
+    # EXCLUDE = "minutely,hourly,alerts"  # → returns only current and daily
+
+    # URL_SUFFIX += f"&exclude={EXCLUDE}"
+
+    #  Current Weather Conditions
+    current_conditions_url = URL_BASE + "weather"
+    print(current_conditions_url)
+    current_conditions_response = requests.get(
+        current_conditions_url, params=owm_query, timeout=10
+    )
+    current_conditions_data = current_conditions_response.json()
+    # print(current_conditions_data)
+    # print(json.dumps(current_conditions_data, indent=2))
+    # print_weather_data(current_conditions_data)
+    current_weather = parse_open_weather_map_data(current_conditions_data, units)
+    print(current_weather)
+
+    #  Current Forecast
+    # CURRENT_CONDITIONS_URL = URL_BASE + "forecast"
+    # print(CURRENT_CONDITIONS_URL)
+    # response = requests.get(CURRENT_CONDITIONS_URL, params=owm_query, timeout=10)
+    # data = response.json()
+    # print(data)
+    # print(json.dumps(data, indent=2))
+
+    return current_weather
