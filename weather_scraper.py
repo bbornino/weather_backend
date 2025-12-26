@@ -9,11 +9,15 @@
 
 import urllib.request
 import json
-from weather_code_map import WEATHER_CODE_MAP
 
+from weather_shared import parse_location
+from accuweather.accuweather_scraper import get_accuweather_data
 from weatherapi.weatherapi_scraper import get_weatherapi_data
 from weatherbit.weatherbit_scraper import get_weatherbit_data
-from open_weather.open_weather_map_scraper import get_open_weather_data
+from open_weather.open_weather_map_scraper import (
+    get_open_weather_data,
+    reverse_geocode,
+)
 
 
 def get_weather(config):
@@ -30,7 +34,7 @@ def get_weather(config):
         dict: JSON-compatible dict with all API results
     """
     # placeholder for now
-    print("weather_scraper->get_weather()")
+    print("\nweather_scraper->get_weather()")
     # print(config)
 
     # Determine which location to use
@@ -43,6 +47,7 @@ def get_weather(config):
 
     if not location:
         raise ValueError("No location provided or found in config")
+    print("Location: " + location)
 
     # Extract units
     units = config.get("units", "imperial")  # default to imperial if not provided
@@ -60,13 +65,24 @@ def get_weather(config):
     ]
     print("Enabled APIs:")
     print(enabled_apis)
-
+    print("\n")
     # Placeholder for results
     results = []
 
     # Each API call would go here later
     if "accuweather" in enabled_apis:
-        print("accuweather is NOT enabled yet")
+        print("calling accuweather library... API key issue!")
+
+        # Some Accuweather plans only allow a City, St, not lat and lon
+        loc = parse_location(location)
+        if loc["lat"] is not None and loc["lon"] is not None:
+            loc = reverse_geocode(lat=loc["lat"], lon=loc["lon"])
+        city_state = f"{loc['city']}, {loc['state']}"
+
+        try:
+            get_accuweather_data(city_state)
+        except RuntimeError as e:
+            print(f"!!!  Weather fetch failed: {e}")
 
     if "national_weather_service" in enabled_apis:
         print("national_weather_service is NOT enabled yet")
@@ -84,7 +100,7 @@ def get_weather(config):
 
     if "weatherbit" in enabled_apis:
         print("calling weatherbit library... API key issue!")
-        wb_results = get_weatherbit_data(location, units)
+        get_weatherbit_data(location, units)
         # print(wb_results)
 
     return {"location": location, "units": units, "results": results}

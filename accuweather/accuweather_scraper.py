@@ -5,12 +5,15 @@
 # are included but commented out to avoid excessive API calls and rate limits.
 # Provides optional JSON save functionality for caching purposes during development.
 
-from accuweather_client import AccuWeatherClient
+from accuweather.accuweather_client import AccuWeatherClient
 
 
-def get_accuweather_data(location, units):
+def get_accuweather_data(city_state):
     client = AccuWeatherClient()
-    location_key = client.get_location_key("Home")
+
+    location_key = client.get_location_key(city_state)
+
+    # location_key = client.get_location_key("Home")
 
     current_conditions_data = client.get_current_conditions(location_key)
     # hourly_forecast_data = client.get_hourly_forecast(location_key)
