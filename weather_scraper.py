@@ -88,12 +88,12 @@ def get_weather(config):
         print("national_weather_service is NOT enabled yet")
 
     if "open_meteo" in enabled_apis:
-        print("Calling open_meteo scraper")
+        print("Calling open_meteo scraper...")
         results.append(get_open_meteo_data(location, units))
 
     if "open_weather" in enabled_apis:
         print("calling open_weather scraper...")
-        get_open_weather_data(location, units)
+        results.append(get_open_weather_data(location, units))
 
     if "weatherapi" in enabled_apis:
         print("calling weatherapi scraper...")

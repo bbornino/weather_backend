@@ -21,6 +21,7 @@ Notes:
 - Optional 'exclude' parameter available for One Call API to reduce payload
 """
 
+from datetime import datetime
 import json
 import requests
 from open_weather.open_weather_map_utils import (
@@ -29,7 +30,9 @@ from open_weather.open_weather_map_utils import (
     # print_weather_data,
     parse_open_weather_map_data,
 )
-from weather_shared import parse_location
+from weather_shared import parse_location, WeatherReport
+
+VERBOSE = False  # module-level verbosity switch
 
 
 def get_open_weather_data(location, units):
@@ -77,26 +80,45 @@ def get_open_weather_data(location, units):
 
     #  Current Weather Conditions
     current_conditions_url = URL_BASE + "weather"
-    print(current_conditions_url)
+
     current_conditions_response = requests.get(
         current_conditions_url, params=owm_query, timeout=10
     )
     current_conditions_data = current_conditions_response.json()
-    # print(current_conditions_data)
-    # print(json.dumps(current_conditions_data, indent=2))
-    # print_weather_data(current_conditions_data)
+
+    if VERBOSE:
+        print("Open Weather Map Current Raw Data")
+        print(current_conditions_data)
+        print(json.dumps(current_conditions_data, indent=2))
+
     current_weather = parse_open_weather_map_data(current_conditions_data, units)
-    print(current_weather)
+
+    if VERBOSE:
+        print("Open Weather Map Current Formatted WeatherData")
+        print(current_conditions_url)
+        print(current_weather)
 
     #  Current Forecast
     # CURRENT_CONDITIONS_URL = URL_BASE + "forecast"
     # print(CURRENT_CONDITIONS_URL)
     # response = requests.get(CURRENT_CONDITIONS_URL, params=owm_query, timeout=10)
     # data = response.json()
-    # print(data)
-    # print(json.dumps(data, indent=2))
 
-    return current_weather
+    open_weather_map_report = WeatherReport()
+    open_weather_map_report.source = "open_meteo"
+    if loc.get("city") and loc.get("state"):
+        open_weather_map_report.location = f"{loc['city']}, {loc['state']}"
+    else:
+        open_weather_map_report.location = f"{current_conditions_data['lat']['lat']},{current_conditions_data['lon']['lat']}"
+
+    open_weather_map_report.latitude = current_conditions_data["coord"]["lat"]
+    open_weather_map_report.longitude = current_conditions_data["coord"]["lon"]
+    open_weather_map_report.fetched_at = datetime.now()
+    open_weather_map_report.current = current_weather
+    open_weather_map_report.hourly = None  # TO DO
+    open_weather_map_report.daily = None  # TO DO
+
+    return open_weather_map_report
 
 
 def reverse_geocode(lat, lon):

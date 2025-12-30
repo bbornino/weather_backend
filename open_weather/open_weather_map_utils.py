@@ -85,7 +85,7 @@ def parse_open_weather_map_data(data, units) -> WeatherData:
         weather.wind_speed = data["wind"]["speed"]
         weather.wind_degree = data["wind"]["deg"]
         weather.wind_direction = degrees_to_direction(data["wind"]["deg"])
-        weather.wind_gust = data["wind"]["gust"]
+        # weather.wind_gust = data["wind"]["gust"]
 
         weather.humidity = data["main"]["humidity"]
         weather.pressure = data["main"]["pressure"]
