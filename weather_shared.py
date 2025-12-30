@@ -158,6 +158,7 @@ class WeatherReport:
         self.current = None
         self.hourly = None
         self.daily = None
+        self.astronomy = None
 
     def __repr__(self):
         # Helper to recursively format attributes

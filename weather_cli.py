@@ -53,7 +53,7 @@ AVAILABLE_APIS = {
     "o": {
         "name": "open_meteo",
         "description": "Free, no-auth global API; simple forecasts and historical data; lightweight",
-        "status": "TBD",
+        "status": "OK",
     },
     "w": {
         "name": "open_weather",

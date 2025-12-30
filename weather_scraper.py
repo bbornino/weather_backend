@@ -97,7 +97,7 @@ def get_weather(config):
 
     if "weatherapi" in enabled_apis:
         print("calling weatherapi scraper...")
-        get_weatherapi_data(location, units)
+        results.append(get_weatherapi_data(location, units))
 
     if "weatherbit" in enabled_apis:
         print("calling weatherbit scraper... API key issue!")

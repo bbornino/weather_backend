@@ -105,7 +105,7 @@ def get_open_weather_data(location, units):
     # data = response.json()
 
     open_weather_map_report = WeatherReport()
-    open_weather_map_report.source = "open_meteo"
+    open_weather_map_report.source = "open_weather"
     if loc.get("city") and loc.get("state"):
         open_weather_map_report.location = f"{loc['city']}, {loc['state']}"
     else:

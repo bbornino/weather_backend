@@ -10,6 +10,7 @@ Python script to fetch and display WeatherAPI.com data for a given location, inc
 Uses weatherapi_utils.py for configuration, API key, and human-readable printing.
 """
 
+from datetime import datetime
 import json
 import requests
 
@@ -20,7 +21,9 @@ from weatherapi.weatherapi_utils import (
     parse_weatherapi_data,
 )
 
-from weather_shared import parse_location
+from weather_shared import parse_location, WeatherReport
+
+VERBOSE = False  # module-level verbosity switch
 
 
 def get_weatherapi_data(location, units):
@@ -36,7 +39,7 @@ def get_weatherapi_data(location, units):
     # Optional Parameters
     days = 14  # Number of forcast days (1-14)
     # hour=10     # Return only for a specific hour
-    dt = 2025 - 11 - 12  # For Specific Date (like history-lite)
+    # dt = 2025 - 11 - 12  # For Specific Date (like history-lite)
     lang = "en"  # Localized for english
     aqi = "yes"  #  air quality
     alerts = "yes"  # Include Weather Alerts
@@ -62,14 +65,16 @@ def get_weatherapi_data(location, units):
     data = resp.json()
     # print(json.dumps(data, indent=2))
 
-    # print("Weather API Current Temp:")
-    # print(data["current"])
-    # print(json.dumps(data["current"], indent=2))
+    if VERBOSE:
+        print("Weather API Current Temp:")
+        print(data["current"])
+        print(json.dumps(data["current"], indent=2))
 
     current_weather = parse_weatherapi_data(data["current"], units)
 
-    print("weatherapi returning current_weather")
-    print(current_weather)
+    if VERBOSE:
+        print("weatherapi generated WeatherData")
+        print(current_weather)
 
     # Marine/ocean data   marine.json
     # days = 10  # Number of forecast days.  Default: 1 Max: 10
@@ -89,12 +94,33 @@ def get_weatherapi_data(location, units):
     # print(json.dumps(data, indent=2))
 
     # # Sun/moon rise/set (optional)  astronomy.json
-    # params = BASE_QUERY.copy()
-    # params.update({"dt": "2025-11-12"})  # For specific date.  Default is today
+    params = BASE_QUERY.copy()
+    params.update({"dt": "2025-11-12"})  # For specific date.  Default is today
 
-    # url = URL_BASE + "astronomy.json"
-    # resp = requests.get(url, params=params, timeout=10)
-    # data = resp.json()
-    # print(json.dumps(data, indent=2))
+    url = URL_BASE + "astronomy.json"
+    resp = requests.get(url, params=params, timeout=10)
+    astronomy_data = resp.json()
+    if VERBOSE:
+        print("weatherapi Sunrise, sunset, moon rise, moonset:")
+        print(json.dumps(astronomy_data, indent=2))
 
-    return current_weather
+    weatherapi_report = WeatherReport()
+    weatherapi_report.source = "WeatherApi"
+    if loc.get("city") and loc.get("state"):
+        weatherapi_report.location = f"{loc['city']}, {loc['state']}"
+    else:
+        weatherapi_report.location = f"{data['latitude']},{data['longitude']}"
+
+    weatherapi_report.latitude = data["location"]["lat"]
+    weatherapi_report.longitude = data["location"]["lon"]
+    weatherapi_report.fetched_at = datetime.now()
+    weatherapi_report.current = current_weather
+    weatherapi_report.hourly = None  # TO DO
+    weatherapi_report.daily = None  # TO DO
+    weatherapi_report.astronomy = astronomy_data
+
+    if VERBOSE:
+        print("get_weatherapi_data returning report:")
+        print(weatherapi_report)
+
+    return weatherapi_report
