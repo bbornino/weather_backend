@@ -7,13 +7,13 @@
 #
 """
 
-import urllib.request
-import json
+from datetime import datetime
 
-from weather_shared import parse_location
+from weather_shared import parse_location, WeatherView
 from accuweather.accuweather_scraper import get_accuweather_data
 from weatherapi.weatherapi_scraper import get_weatherapi_data
 from weatherbit.weatherbit_scraper import get_weatherbit_data
+from open_meteo.open_meteo_scraper import get_open_meteo_data
 from open_weather.open_weather_map_scraper import (
     get_open_weather_data,
     reverse_geocode,
@@ -71,7 +71,7 @@ def get_weather(config):
 
     # Each API call would go here later
     if "accuweather" in enabled_apis:
-        print("calling accuweather library... API key issue!")
+        print("calling accuweather scraper... API key issue!")
 
         # Some Accuweather plans only allow a City, St, not lat and lon
         loc = parse_location(location)
@@ -88,19 +88,28 @@ def get_weather(config):
         print("national_weather_service is NOT enabled yet")
 
     if "open_meteo" in enabled_apis:
-        print("open_meteo is NOT enabled yet")
+        print("Calling open_meteo scraper")
+        results.append(get_open_meteo_data(location, units))
 
     if "open_weather" in enabled_apis:
-        print("calling open_weather library...")
-        owm_results = get_open_weather_data(location, units)
+        print("calling open_weather scraper...")
+        get_open_weather_data(location, units)
 
     if "weatherapi" in enabled_apis:
-        print("calling weatherapi library...")
-        wa_results = get_weatherapi_data(location, units)
+        print("calling weatherapi scraper...")
+        get_weatherapi_data(location, units)
 
     if "weatherbit" in enabled_apis:
-        print("calling weatherbit library... API key issue!")
+        print("calling weatherbit scraper... API key issue!")
         get_weatherbit_data(location, units)
         # print(wb_results)
 
-    return {"location": location, "units": units, "results": results}
+    weather_view = WeatherView()
+    weather_view.app_name = "Bornino Weather App"
+    weather_view.app_version = 0.1
+    weather_view.units = units
+    weather_view.generated_at = datetime.now()
+    weather_view.timezone = "America/Los_Angeles (GMT-8)"
+    weather_view.reports = results
+
+    return weather_view

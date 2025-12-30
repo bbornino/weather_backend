@@ -7,81 +7,68 @@ listed at the bottom for reference. This allows weather_scraper.py to always use
 canonical names across multiple APIs.
 """
 
-import yaml
-
-# -----------------------------
-# Step 1: Load the master sys_config.yaml
-# -----------------------------
-with open("sys_config.yaml", "r") as f:
-    sys_config = yaml.safe_load(f)
-
-enabled_metrics = sys_config.get("metrics", {})
-enabled_units = sys_config.get("units", "us")
-
-# -----------------------------
-# Step 2: Define Open-Meteo's supported fields
-# -----------------------------
-OPEN_METEO_FIELD_MAP = {
-    "temperature_2m": "temperature",
-    "apparent_temperature": "feels_like",
-    "relative_humidity_2m": "humidity",
-    "dewpoint_2m": "dew_point",
-    "wind_chill": "wind_chill",  # optional, if API supports
-    "heat_index": "heat_index",  # optional, if API supports
-    "precipitation": "precipitation",
-    "precipitation_probability": "precipitation_probability",
-    "precipitation_type": "precipitation_type",
-    "snowfall": "snowfall",
-    "snow_depth": "snow_depth",
-    "freezing_rain": "freezing_rain",  # optional
-    "windspeed_10m": "wind_speed",
-    "windgusts_10m": "wind_gusts",
-    "winddirection_10m": "wind_direction",
-    "wind_vector": "wind_vector",  # optional
-    "cloudcover": "cloud_cover",
-    "cloud_base": "cloud_base",  # optional
-    "visibility": "visibility",
-    "weathercode": "weather_code",
-    "weather_description": "weather_description",  # optional
-    "uv_index": "uv_index",
-    "sunrise": "sunrise",
-    "sunset": "sunset",
-    "daylight_duration": "daylight_duration",  # optional
-    "pressure_msl": "pressure",
-    "pressure_trend": "pressure_trend",  # optional
-    "altimeter": "altimeter",  # optional
-    "feels_like_temperature": "feels_like_temperature",  # optional / derived
-    "air_quality_index": "air_quality_index",  # optional
-    "pollen_index": "pollen_index",  # optional
-}
+from weather_shared import WeatherData, degrees_to_direction, WEATHER_CODE_MAP
 
 
-# -----------------------------
-# Step 3: List unsupported terms for reference
-# -----------------------------
-"""
-Unsupported metrics in Open-Meteo (these were in sys_config.yaml but have no corresponding Open-Meteo field):
-- wind_chill
-- heat_index
-- freezing_rain
-- wind_vector
-- cloud_base
-- weather_description
-- daylight_duration
-- pressure_trend
-- altimeter
-- feels_like_temperature
-- air_quality_index
-- pollen_index
-"""
+OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/"
+GEOCODE_BASE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 
 # -----------------------------
-# Step 4: Filter dictionary by enabled metrics and Open-Meteo support
+# Open-Meteo's supported fields
 # -----------------------------
-enabled_open_meteo_metrics = {
-    canonical_name: api_field
-    for api_field, canonical_name in OPEN_METEO_FIELD_MAP.items()
-    if enabled_metrics.get(canonical_name, False)
-}
+OPEN_METEO_HOURLY_FIELDS = [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "dewpoint_2m",
+    "apparent_temperature",
+    "precipitation",
+    "rain",
+    "showers",
+    "snowfall",
+    "weathercode",
+    "cloudcover",
+    "cloudcover_low",
+    "cloudcover_mid",
+    "cloudcover_high",
+    "visibility",
+    "windspeed_10m",
+    "winddirection_10m",
+    "windgusts_10m",
+]
 
-# print(enabled_open_meteo_metrics)
+
+OPEN_METEO_DAILY_FIELDS = [
+    "temperature_2m_max",
+    "temperature_2m_mean",
+    "temperature_2m_min",
+    "precipitation_sum",
+    "rain_sum",
+    "showers_sum",
+    "snowfall_sum",
+    "windspeed_10m_max",
+    "winddirection_10m_dominant",
+    "windgusts_10m_max",
+    "precipitation_hours",
+    "precipitation_probability_max",
+    "precipitation_probability_mean",
+    "precipitation_probability_min",
+    "sunrise",
+    "sunset",
+    "sunshine_duration",
+    "weathercode",
+]
+
+
+def parse_open_meteo_data(data, units) -> WeatherData:
+    # print(f"parse_open_meteo_data units: {units}")
+    # print(data)
+
+    weather = WeatherData()
+    if units == "imperial":
+        weather.temperature = data["temperature"]
+        weather.wind_speed = data["windspeed"]
+        weather.wind_degree = data["winddirection"]
+        weather.wind_direction = degrees_to_direction(data["winddirection"])
+        weather.condition_str = WEATHER_CODE_MAP[data["weathercode"]]
+
+    return weather
