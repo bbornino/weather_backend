@@ -215,6 +215,7 @@ def manage_locations(state):
                 print("Alias not found.")
         elif choice == "d":
             state["locations"] = locations
+            save_settings(state)
             return  # done
         else:
             print("Invalid choice, try again.")
@@ -257,6 +258,7 @@ def manage_apis(state):
             input("Press Enter to return to the API list...")
         elif choice == "d":
             state["apis"] = apis
+            save_settings(state)
             return
         else:
             print("Invalid choice, try again.")
@@ -414,7 +416,7 @@ def interactive_menu(state, config_path):
         elif choice == "o":
             set_forecast(state)
         elif choice == "r":
-            print("actual run not implemented... yet")
+            print("Getting weather...")
             weather_results = get_weather(state)
             print("\n\nReceived this weather:")
             print(weather_results)
