@@ -13,11 +13,12 @@ from weather_shared import parse_location, WeatherView
 from accuweather.accuweather_scraper import get_accuweather_data
 from weatherapi.weatherapi_scraper import get_weatherapi_data
 from weatherbit.weatherbit_scraper import get_weatherbit_data
-from open_meteo.open_meteo_scraper import get_open_meteo_data
+from open_meteo.open_meteo_scraper import get_open_meteo_data, geocode
 from open_weather.open_weather_map_scraper import (
     get_open_weather_data,
     reverse_geocode,
 )
+from national_weather_service.nws_scraper import get_nws_data
 
 
 def get_weather(config):
@@ -85,7 +86,25 @@ def get_weather(config):
             print(f"!!!  Weather fetch failed: {e}")
 
     if "national_weather_service" in enabled_apis:
-        print("national_weather_service is NOT enabled yet")
+
+        # NWS only supports a latitude and longitude
+        loc = parse_location(location)
+        if loc["city"] is not None and loc["state"] is not None:
+            geocode_location = geocode(loc["city"], loc["state"])
+
+            if geocode_location is None:
+                # Graceful exit: we can't proceed without coordinates
+                print(f"Could not geocode location: {loc['city']}, {loc['state']}")
+                return None
+            else:
+                latitude = geocode_location.get("latitude")
+                longitude = geocode_location.get("longitude")
+        else:
+            latitude = loc["lat"]
+            longitude = loc["lon"]
+
+        print("Calling national_weather_service...")
+        get_nws_data(latitude, longitude, units)
 
     if "open_meteo" in enabled_apis:
         print("Calling open_meteo scraper...")
