@@ -104,6 +104,7 @@ class WeatherData:
         self.uv = None
 
         # Other
+        self.icon = None  # URL to NWS weather icon
         self.timestamp = None
         self.condition = None
         self.condition_str = None
@@ -159,6 +160,7 @@ class WeatherReport:
         self.hourly = None
         self.daily = None
         self.astronomy = None
+        self.alerts = None
 
     def __repr__(self):
         # Helper to recursively format attributes
