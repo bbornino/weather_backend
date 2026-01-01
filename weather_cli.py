@@ -16,61 +16,21 @@ Notes:
     - Future expansion could include additional CLI arguments or modes.
 """
 
+from datetime import datetime
 import argparse
 import json
 import os
 import sys
 from copy import deepcopy
 from weather_scraper import get_weather
-
-
-DEFAULT_SETTINGS_FILE = "weather_settings.json"
-DEFAULTS = {
-    "units": "imperial",
-    "show": ["temp", "humidity"],
-    "forecast": {"type": None, "count": 0},  # None | "hours" | "days"
-    "apis": {},
-    "locations": {},
-    "default_location": None,
-}
-
-UNIT_DESCRIPTIONS = {
-    "imperial": "Temperature: °F   Wind: mph",
-    "metric": "Temperature: °C   Wind: km/h",
-}
-
-AVAILABLE_APIS = {
-    "a": {
-        "name": "accuweather",
-        "description": "Detailed forecasts with alerts; strong US coverage; popular for hyper-local predictions",
-        "status": "API KEY ISSUE",
-    },
-    "n": {
-        "name": "national_weather_service",
-        "description": "Official US government forecasts and warnings; US-only; reliable for alerts",
-        "status": "TBD",
-    },
-    "o": {
-        "name": "open_meteo",
-        "description": "Free, no-auth global API; simple forecasts and historical data; lightweight",
-        "status": "OK",
-    },
-    "w": {
-        "name": "open_weather",
-        "description": "Global coverage, current weather and forecasts; widely supported; needs API key",
-        "status": "OK",
-    },
-    "p": {
-        "name": "weatherapi",
-        "description": "Global forecasts including historical data; supports alerts and astronomy info",
-        "status": "OK",
-    },
-    "b": {
-        "name": "weatherbit",
-        "description": "Global hourly/daily forecasts; good for developers needing JSON output",
-        "status": "API KEY ISSUE",
-    },
-}
+from weather_shared import (
+    UNIT_MAP,
+    DEFAULT_SETTINGS_FILE,
+    DEFAULTS,
+    AVAILABLE_APIS,
+    CLI_COLUMN_WIDTH,
+    format_unit_description_full,
+)
 
 
 def load_settings(path):
@@ -369,6 +329,132 @@ def set_forecast(state):
         print("Invalid choice, forecast unchanged")
 
 
+def display_weather(the_weather, units):
+    """
+    Display a formatted weather comparison table and extra information for multiple sources.
+
+    This function prints:
+      1. A timestamp for when the data is displayed.
+      2. A table of current weather values for each source (report) in `the_weather.reports`.
+         - Rows include: Temperature, Feels Like, Wind Chill, Heat Index, Dew Point,
+           Wind Speed, Wind Gust, Wind Degree, Wind Direction, Humidity, Pressure,
+           Visibility, Cloud Cover, UV Index.
+         - Units are appended based on the provided `units` ("imperial" or "metric")
+           and the global `UNIT_MAP`.
+         - Missing values are displayed as "--".
+      3. Alerts and extra information per source:
+         - Weather condition (from `condition_str` or `condition`)
+         - Astronomy data (sunrise, sunset, moonrise, moonset, moon phase)
+         - Any additional alerts present in the `alerts` attribute.
+
+    Args:
+        the_weather (WeatherView): The weather view object containing multiple WeatherReport objects.
+        units (str): The unit system to use for display. Expected values: "imperial" or "metric".
+
+    Notes:
+        - This function is CLI-specific and prints directly to stdout.
+        - Weather values are retrieved from `report.current` attributes.
+        - Astronomy and alerts are optional and only displayed if available.
+        - For unit conversions (temperature, wind speed, pressure, visibility, etc.),
+          refer to `UNIT_MAP` and API-specific helper functions in `nws_config.py`.
+
+    Example:
+        display_weather(weather_data, "imperial")
+    """
+    print("Displaying the Weather")
+    now = datetime.now()
+    print(now.strftime("%A, %B %d, %Y at %I:%M %p"))
+    print()
+
+    rows = [
+        ("Temperature", "temperature", "temp"),
+        ("Feels Like", "feels_like", "temp"),
+        ("Wind Chill", "wind_chill", "temp"),
+        ("Heat Index", "heat_index", "temp"),
+        ("Dew Point", "dew_point", "temp"),
+        ("Wind Speed", "wind_speed", "speed"),
+        ("Wind Gust", "wind_gust", "speed"),
+        ("Wind Degree", "wind_degree", "degree"),
+        ("Wind Direction", "wind_direction", "none"),
+        ("Humidity", "humidity", "percent"),
+        ("Pressure", "pressure", "pressure"),
+        ("Visibility", "visibility", "distance"),
+        ("Cloud Cover", "cloud_cover", "percent"),
+        ("UV Index", "uv", "none"),
+    ]
+
+    # Print column headers (weather sources)
+    print("".ljust(CLI_COLUMN_WIDTH), end="")
+    for report in the_weather.reports:
+        print(report.source.rjust(CLI_COLUMN_WIDTH), end="")
+    print()
+
+    # Loop over each row definition
+    for label, attr, unit_key in rows:
+
+        # Print the row label on the left
+        print(label.ljust(CLI_COLUMN_WIDTH), end="")
+
+        # Loop across each weather source (columns)
+        for report in the_weather.reports:
+
+            # Get the value from report.current
+            value = getattr(report.current, attr, None)
+
+            # If the value is missing, show --
+            if value is None:
+                cell = "--"
+            else:
+                unit = UNIT_MAP[unit_key][units]
+                cell = f"{value}{unit}"
+
+            # Print the cell, right-aligned
+            print(cell.rjust(CLI_COLUMN_WIDTH), end="")
+
+        # Move to the next line after finishing the row
+        print()
+
+    # ----- Alerts / Extra Information -----
+    print("\nAlerts / Extra Information")
+    for report in the_weather.reports:
+        extras = []
+
+        # Condition string
+        cond_str = getattr(report.current, "condition_str", None)
+        if not cond_str and getattr(report.current, "condition", None):
+            # Some APIs store as dict or list
+            cond = report.current.condition
+            if isinstance(cond, dict):
+                cond_str = cond.get("text")
+            elif isinstance(cond, list) and cond:
+                cond_str = cond[0].get("description") or cond[0].get("text")
+        if cond_str:
+            extras.append(f"Condition: {cond_str}")
+
+        # Astronomy
+        astro = getattr(report, "astronomy", None)
+        if astro and isinstance(astro, dict):
+            astro_data = astro.get("astronomy", {}).get("astro", {})
+            if astro_data:
+                extras.append(f"Sunrise: {astro_data.get('sunrise','--')}")
+                extras.append(f"Sunset: {astro_data.get('sunset','--')}")
+                extras.append(f"Moonrise: {astro_data.get('moonrise','--')}")
+                extras.append(f"Moonset: {astro_data.get('moonset','--')}")
+                extras.append(f"Moon phase: {astro_data.get('moon_phase','--')}")
+
+        # Alerts
+        alerts = getattr(report, "alerts", None)
+        if alerts:
+            extras.extend(alerts)
+
+        # Print if there is anything to show
+        if extras:
+            print(f"[{report.source}]")
+            for item in extras:
+                print(f" - {item}")
+    print()
+
+
 def interactive_menu(state, config_path):
     """Display the interactive menu."""
     while True:
@@ -378,15 +464,14 @@ def interactive_menu(state, config_path):
         default_alias = state.get("default_location")
         active_alias = state.get("active_location", default_alias)
         locations = state.get("locations", {})
-
         default_loc = locations.get(default_alias, "None")
         active_loc = locations.get(active_alias, "None")
-
         print(f"Selected location - {active_alias}: {active_loc}")
         print(f"Default location - {default_alias}: {default_loc}")
 
         current_units = state.get("units", "imperial")
-        print(f"Units - {UNIT_DESCRIPTIONS.get(current_units, current_units)}")
+        print(f"Units - {format_unit_description_full(current_units)}")
+
         print(f"Fields to show - {', '.join(state.get('show', []))}")
         print(
             f"Forecast - {state['forecast'].get('type', 'None')} ({state['forecast'].get('count', 0)})"
@@ -416,10 +501,11 @@ def interactive_menu(state, config_path):
         elif choice == "o":
             set_forecast(state)
         elif choice == "r":
-            print("Getting weather...")
+            state["display_info"] = True
             weather_results = get_weather(state)
-            print("\n\nReceived this weather:")
-            print(weather_results)
+            # print("\n\nReceived this weather:")
+            # print(weather_results)
+            display_weather(weather_results, current_units)
             break
         elif choice == "x":
             break
@@ -450,8 +536,6 @@ def main():
         save_settings(state, config_path)
     else:
         print("[Non-interactive mode]\n")
-
-    print("goodbye!")
 
 
 if __name__ == "__main__":
