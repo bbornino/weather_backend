@@ -18,8 +18,8 @@ from dotenv import load_dotenv
 
 # import sys
 # import io
+from weather_objects import WeatherData
 
-from weather_shared import WeatherData
 
 # sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 

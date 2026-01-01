@@ -7,7 +7,8 @@ from open_meteo.open_meteo_config import (
     OPEN_METEO_DAILY_FIELDS,
     parse_open_meteo_data,
 )
-from weather_shared import WeatherData, parse_location, WeatherReport
+from weather_objects import WeatherReport
+from weather_shared import parse_location
 
 VERBOSE = False  # module-level verbosity switch
 

@@ -9,7 +9,8 @@
 
 from datetime import datetime
 
-from weather_shared import parse_location, WeatherView
+from weather_objects import WeatherView
+from weather_shared import parse_location
 from accuweather.accuweather_scraper import get_accuweather_data
 from weatherapi.weatherapi_scraper import get_weatherapi_data
 from weatherbit.weatherbit_scraper import get_weatherbit_data

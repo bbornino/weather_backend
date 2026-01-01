@@ -30,7 +30,8 @@ from open_weather.open_weather_map_utils import (
     # print_weather_data,
     parse_open_weather_map_data,
 )
-from weather_shared import parse_location, WeatherReport
+from weather_objects import WeatherReport
+from weather_shared import parse_location
 
 VERBOSE = False  # module-level verbosity switch
 

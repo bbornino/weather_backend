@@ -7,7 +7,8 @@ listed at the bottom for reference. This allows weather_scraper.py to always use
 canonical names across multiple APIs.
 """
 
-from weather_shared import WeatherData, degrees_to_direction, WEATHER_CODE_MAP
+from weather_objects import WeatherData
+from weather_shared import degrees_to_direction, WEATHER_CODE_MAP
 
 
 OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/"

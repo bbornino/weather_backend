@@ -21,4 +21,6 @@ weather_backend/
 ├── README.md
 ├── cli.py    
 ├── lambda_handler.py          
-├── weather_scraper.py       # core          
+├── weather_objects.py       # WeatherData, WeatherReport, WeatherView
+├── weather_scraper.py       # core   
+├── weather_shared.py       # global config, constants, shared functions

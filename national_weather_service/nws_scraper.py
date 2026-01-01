@@ -23,7 +23,8 @@ from pathlib import Path
 import urllib.request
 import json
 
-from weather_shared import WeatherData, WeatherReport, degrees_to_direction
+from weather_objects import WeatherData, WeatherReport
+from weather_shared import degrees_to_direction
 from national_weather_service.nws_config import (
     NATIONAL_WEATHER_SERVICE_BASE_URL,
     set_temp,
@@ -33,7 +34,7 @@ from national_weather_service.nws_config import (
     set_cloud_cover,
 )
 
-VERBOSE = True  # module-level verbosity switch
+VERBOSE = False  # module-level verbosity switch
 BASE_DIR = Path(__file__).resolve().parent
 
 
@@ -226,8 +227,9 @@ def get_nws_data(latitude, longitude, units):
             }
         )
 
-    print("NWS Alerts:")
-    print(alerts)
+    if VERBOSE:
+        print("NWS Alerts:")
+        print(alerts)
     # save the observation stations to a file so that we can easily read the output
     alert_file = BASE_DIR / "nws_alert.json"
     with open(alert_file, "w", encoding="utf-8") as alert_json:

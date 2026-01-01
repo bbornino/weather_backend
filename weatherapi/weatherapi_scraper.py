@@ -21,7 +21,8 @@ from weatherapi.weatherapi_utils import (
     parse_weatherapi_data,
 )
 
-from weather_shared import parse_location, WeatherReport
+from weather_objects import WeatherReport
+from weather_shared import parse_location
 
 VERBOSE = False  # module-level verbosity switch
 
