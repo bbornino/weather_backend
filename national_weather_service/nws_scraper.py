@@ -172,7 +172,7 @@ def get_nws_data(latitude, longitude, units):
         current["windGust"]["value"], current["windGust"]["unitCode"], units
     )
 
-    current_weather.humidity = current["relativeHumidity"]["value"]
+    current_weather.humidity = round(current["relativeHumidity"]["value"], 1)
     current_weather.pressure = set_pressure(
         current["barometricPressure"]["value"],
         current["barometricPressure"]["unitCode"],
