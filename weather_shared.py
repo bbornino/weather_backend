@@ -12,12 +12,18 @@ This module contains:
 
 2. Global configuration / defaults
    - HOME_CITY, HOME_LAT, HOME_LON
+   - CLI_COLUMN_WIDTH
+   - DEFAULT_SETTINGS_FILE
+   - DEFAULTS
+   - AVAILABLE_APIS
 
 3. Shared Functions
    - parse_location(location: str)
    - degrees_to_direction(deg: float)
+   - format_unit_description_full
 
 4. Weather Code Map
+   - UNIT_MAP: Maps display units for both imperial and metric systems.
    - WEATHER_CODE_MAP: WMO (World Meteorological Organization) codes
 """
 
@@ -42,6 +48,49 @@ HOME_CITY = os.getenv("HOME_CITY")
 HOME_LAT = os.getenv("HOME_LATITUDE")
 HOME_LON = os.getenv("HOME_LONGITUDE")
 
+CLI_COLUMN_WIDTH = 14
+DEFAULT_SETTINGS_FILE = "weather_settings.json"
+DEFAULTS = {
+    "units": "imperial",
+    "show": ["temp", "humidity"],
+    "forecast": {"type": None, "count": 0},  # None | "hours" | "days"
+    "apis": {},
+    "locations": {},
+    "default_location": None,
+}
+
+AVAILABLE_APIS = {
+    "a": {
+        "name": "accuweather",
+        "description": "Detailed forecasts with alerts; strong US coverage; popular for hyper-local predictions",
+        "status": "API KEY ISSUE",
+    },
+    "n": {
+        "name": "national_weather_service",
+        "description": "Official US government forecasts and warnings; US-only; reliable for alerts",
+        "status": "TBD",
+    },
+    "o": {
+        "name": "open_meteo",
+        "description": "Free, no-auth global API; simple forecasts and historical data; lightweight",
+        "status": "OK",
+    },
+    "w": {
+        "name": "open_weather",
+        "description": "Global coverage, current weather and forecasts; widely supported; needs API key",
+        "status": "OK",
+    },
+    "p": {
+        "name": "weatherapi",
+        "description": "Global forecasts including historical data; supports alerts and astronomy info",
+        "status": "OK",
+    },
+    "b": {
+        "name": "weatherbit",
+        "description": "Global hourly/daily forecasts; good for developers needing JSON output",
+        "status": "API KEY ISSUE",
+    },
+}
 
 # ==========================
 # Shared Helper Functions
@@ -119,9 +168,62 @@ def degrees_to_direction(deg: float) -> str:
     return directions[idx]
 
 
+def format_unit_description_full(system: str) -> str:
+    """Generate a dynamic description from all displayable units."""
+    display_keys = ["temp", "speed", "distance", "pressure"]
+    parts = [f"{k.capitalize()}: {UNIT_MAP[k][system]}" for k in display_keys]
+    return "   ".join(parts)
+
+
 # -------------------------
 # Maps
 # -------------------------
+
+# UNIT_MAP
+#
+# Maps the types of weather data to their display units for both imperial and metric systems.
+# This map is used primarily by the CLI or report generators to append the correct unit symbols
+# to values when displaying them.
+#
+# Note:
+# - Temperature, speed, and distance may require conversions before display.
+# - For NWS-specific conversions (temperature, wind speed, pressure, visibility, cloud cover),
+#   see nws_config.py for helper functions.
+# - Other APIs may have their own conversion functions; always normalize before display.
+
+
+UNIT_MAP = {
+    "temp": {
+        "imperial": "°F",
+        "metric": "°C",
+    },
+    "speed": {
+        "imperial": "mph",
+        "metric": "kph",
+    },
+    "distance": {
+        "imperial": "mi",
+        "metric": "km",
+    },
+    "pressure": {
+        "imperial": "inHg",
+        "metric": "hPa",
+    },
+    "percent": {
+        "imperial": "%",
+        "metric": "%",
+    },
+    "degree": {
+        "imperial": "°",
+        "metric": "°",
+    },
+    "none": {
+        "imperial": "",
+        "metric": "",
+    },
+}
+
+
 """
 The WEATHER_CODE_MAP provides a complete mapping of WMO (World Meteorological Organization)
 international weather condition codes to human-readable descriptions. These codes are
