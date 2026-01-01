@@ -35,8 +35,11 @@ def get_weather(config):
     Returns:
         dict: JSON-compatible dict with all API results
     """
-    # placeholder for now
-    print("\nweather_scraper->get_weather()")
+
+    if config["display_info"]:
+        print(
+            f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] weather_scraper->get_weather()"
+        )
     # print(config)
 
     # Determine which location to use
@@ -49,31 +52,39 @@ def get_weather(config):
 
     if not location:
         raise ValueError("No location provided or found in config")
-    print("Location: " + location)
+    if config["display_info"]:
+        print("Location: " + location)
 
     # Extract units
     units = config.get("units", "imperial")  # default to imperial if not provided
-    print("Units: " + units)
+    if config["display_info"]:
+        print("Units: " + units)
 
     # Extract fields to show
     show_fields = config.get("show", ["temp", "humidity"])  # default subset
-    print("Show Fields: ")
-    print(show_fields)
+    if config["display_info"]:
+        print("Show Fields: ")
+        print(show_fields)
 
     # Extract enabled APIs
     apis_config = config.get("apis", {})
     enabled_apis = [
         api for api, details in apis_config.items() if details.get("enabled")
     ]
-    print("Enabled APIs:")
-    print(enabled_apis)
-    print("\n")
+    if config["display_info"]:
+        print("Enabled APIs:")
+        print(enabled_apis)
+        print("\n")
     # Placeholder for results
     results = []
 
     # Each API call would go here later
     if "accuweather" in enabled_apis:
-        print("calling accuweather scraper... API key issue!")
+        if config["display_info"]:
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Getting accuweather scraper... API key issue!",
+                flush=True,
+            )
 
         # Some Accuweather plans only allow a City, St, not lat and lon
         loc = parse_location(location)
@@ -104,25 +115,44 @@ def get_weather(config):
             latitude = loc["lat"]
             longitude = loc["lon"]
 
-        print("Calling national_weather_service...")
-        get_nws_data(latitude, longitude, units)
+        if config["display_info"]:
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Getting national_weather_service...",
+                flush=True,
+            )
+        results.append(get_nws_data(latitude, longitude, units))
 
     if "open_meteo" in enabled_apis:
-        print("Calling open_meteo scraper...")
+        if config["display_info"]:
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Getting open_meteo scraper...",
+                flush=True,
+            )
         results.append(get_open_meteo_data(location, units))
 
     if "open_weather" in enabled_apis:
-        print("calling open_weather scraper...")
+        if config["display_info"]:
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Getting open_weather scraper...",
+                flush=True,
+            )
         results.append(get_open_weather_data(location, units))
 
     if "weatherapi" in enabled_apis:
-        print("calling weatherapi scraper...")
+        if config["display_info"]:
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Getting weatherapi scraper...",
+                flush=True,
+            )
         results.append(get_weatherapi_data(location, units))
 
     if "weatherbit" in enabled_apis:
-        print("calling weatherbit scraper... API key issue!")
+        if config["display_info"]:
+            print(
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Getting weatherbit scraper... API key issue!",
+                flush=True,
+            )
         get_weatherbit_data(location, units)
-        # print(wb_results)
 
     weather_view = WeatherView()
     weather_view.app_name = "Bornino Weather App"
