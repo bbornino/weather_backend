@@ -26,6 +26,8 @@ from dotenv import load_dotenv
 from weather_objects import WeatherData
 from weather_shared import degrees_to_direction
 
+from national_weather_service.nws_config import set_pressure, set_visibility
+
 load_dotenv()
 os.environ["PYTHONUTF8"] = "1"
 HOME_CITY = os.getenv("HOME_CITY")
@@ -88,9 +90,9 @@ def parse_open_weather_map_data(data, units) -> WeatherData:
         # weather.wind_gust = data["wind"]["gust"]
 
         weather.humidity = data["main"]["humidity"]
-        weather.pressure = data["main"]["pressure"]
+        weather.pressure = set_pressure(data["main"]["pressure"], "wmoUnit:hPa", units)
         weather.precipitation = None  # not included in current endpoint; could use rain/snow keys if present
-        weather.visibility = data["visibility"]
+        weather.visibility = set_visibility(data["visibility"], "wmoUnit:m", units)
         weather.cloud_cover = data["clouds"]["all"]
         weather.uv = None  # OpenWeatherMap current API doesn't include UV
 
