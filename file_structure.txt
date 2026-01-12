@@ -21,6 +21,7 @@ weather_backend/
 ├── README.md
 ├── cli.py    
 ├── lambda_handler.py          
-├── weather_objects.py       # WeatherData, WeatherReport, WeatherView
-├── weather_scraper.py       # core   
-├── weather_shared.py       # global config, constants, shared functions
+├── requirements.txt       # The additional libraries that python needs to run (script)
+├── weather_objects.py     # WeatherData, WeatherReport, WeatherView
+├── weather_scraper.py     # core   
+├── weather_shared.py      # global config, constants, shared functions

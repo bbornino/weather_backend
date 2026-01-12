@@ -68,7 +68,7 @@ AVAILABLE_APIS = {
     "n": {
         "name": "national_weather_service",
         "description": "Official US government forecasts and warnings; US-only; reliable for alerts",
-        "status": "TBD",
+        "status": "OK",
     },
     "o": {
         "name": "open_meteo",
